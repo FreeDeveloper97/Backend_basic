@@ -1,7 +1,8 @@
 import express from "express";
-import {} from "express-async-errors";
 import morgan from "morgan";
 import helmet from "helmet";
+import cors from "cors";
+import "express-async-errors";
 
 import tweetsRouter from "./routes/tweet.js";
 
@@ -9,11 +10,17 @@ const app = express();
 app.use(express.json());
 app.use(morgan("common"));
 app.use(helmet());
+app.use(cors());
 
 app.use("/tweets", tweetsRouter);
 
+app.use((req, res, next) => {
+  res.status(404).json({ message: "Something went wrong" });
+});
+
 app.use((error, req, res, next) => {
   console.error(error);
-  res.status(500).json({ message: "Something went wrong" });
+  res.sendStatus(500);
 });
+
 app.listen(8080);

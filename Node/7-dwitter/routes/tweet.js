@@ -1,58 +1,78 @@
 import express from "express";
+import "express-async-errors";
+
 const router = express.Router();
+let tweets = [
+  {
+    id: "1",
+    text: "드림코더분들 화이팅!",
+    createdAt: Date.now().toString(),
+    name: "Bob",
+    username: "bob",
+    url: "https://widgetwhats.com/app/uploads/2019/11/free-profile-photo-whatsapp-1.png",
+  },
+  {
+    id: "2",
+    text: "안뇽!",
+    createdAt: Date.now().toString(),
+    name: "Ellie",
+    username: "ellie",
+  },
+];
 
-router.use((req, res, next) => {
-  // 에러처리를 어떻게 해야할까..
-  next();
-});
-
+// GET /tweets
+// GET /tweets?username=:username
 router.get("/", (req, res) => {
-  if (req.query.username) {
-    const username = req.query.username;
-    console.log(`-->GET /tweets?username=${username}`);
-  } else {
-    console.log("-->GET /tweets");
-  }
-  res.sendStatus(200);
+  const username = req.query.username;
+  const data = username
+    ? tweets.filter((t) => t.username === username)
+    : tweets;
+
+  res.status(200).json(data);
 });
 
+// GET /tweets/:id
 router.get("/:id", (req, res) => {
   const id = req.params.id;
-  if (id) {
-    console.log(`-->GET /tweets/${id}`);
-    res.sendStatus(200);
+  const tweet = tweets.find((t) => t.id === id);
+  if (tweet) {
+    res.status(200).json(tweet);
   } else {
-    res.sendStatus(400);
+    res.status(404).json({ message: `Tweet id(${id})) not found` });
   }
 });
 
+// POST /tweets
+router.post("/", (req, res) => {
+  const data = req.body;
+  const tweet = {
+    id: Date.now().toString(),
+    text: data.text,
+    createdAt: new Date(),
+    name: data.name,
+    username: data.username,
+  };
+  tweets = [tweet, ...tweets];
+  res.status(201).json(tweet);
+});
+
+// DELETE /tweets/:id
 router.delete("/:id", (req, res, next) => {
   const id = req.params.id;
-  if (id) {
-    console.log(`-->DELETE /tweets/${id}`);
-    res.sendStatus(204);
-  } else {
-    res.sendStatus(400);
-  }
+  tweets = tweets.filter((t) => t.id !== id);
+  res.sendStatus(204);
 });
 
-router.post("/", (req, res) => {
-  const newTweet = req.body;
-  if (newTweet) {
-    console.log(`-->POST /tweets ${JSON.stringify(newTweet)}`);
-    res.sendStatus(201);
-  } else {
-    res.sendStatus(400);
-  }
-});
-
+// PUT /tweets/:id
 router.put("/:id", (req, res) => {
   const id = req.params.id;
-  if (id) {
-    console.log(`-->PUT /tweets/${id}`);
-    res.sendStatus(201);
+  const newText = req.body.text;
+  const tweet = tweets.find((t) => t.id === id);
+  if (tweet) {
+    tweet.text = newText;
+    res.status(200).json(tweet);
   } else {
-    res.sendStatus(400);
+    res.status(404).json({ message: `Tweet id(${id})) not found` });
   }
 });
 
